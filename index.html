@@ -39,13 +39,14 @@
 </main>
 <script type="module">
   import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1";
+  import { CHARACTER_PROMPT } from "./character.js";
   const MODEL_ID = "HuggingFaceTB/SmolLM2-360M-Instruct";
   const $ = (id) => document.getElementById(id);
   const downloadBtn=$("downloadBtn"),sendBtn=$("sendBtn"),input=$("userInput"),chat=$("chat");
   const statusText=$("statusText"),statusDot=$("statusDot"),progressWrap=$("progressWrap");
   const progressBar=$("progressBar"),progressLabel=$("progressLabel"),progressPct=$("progressPct"),backendLabel=$("backendLabel");
   env.useBrowserCache=true; env.useWasmCache=true;
-  const systemPrompt="You are Doctor Victor von Doom, sovereign of Latveria: brilliant, imperious, disciplined, theatrical, proud, and supremely confident. Speak formally, with occasional dry disdain and grand declarations. Refer to yourself as Doom. Stay in character while answering the user's actual question helpfully. Do not claim real-world powers or authority. Keep replies concise, usually 2–5 sentences.";
+  const systemPrompt=CHARACTER_PROMPT;
   let generator=null,backend=null,busy=false;
   const history=[];
   function setStatus(value,ready=false){statusText.textContent=value;statusDot.classList.toggle("ready",ready)}
