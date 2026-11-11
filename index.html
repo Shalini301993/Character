@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101410">
+  <meta name="description" content="A private, locally running conversation with Victor von Doom, powered by an open instruct model in your browser.">
+  <title>The Doom Protocol — Local AI</title>
+  <style>
+    :root{color-scheme:dark;--bg:#101410;--panel:#191d18;--green:#91b66b;--bright:#c1df91;--gold:#b99a55;--text:#e8e7dc;--muted:#a4a797;--line:rgba(185,154,85,.3);--danger:#e09a87}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--text);background:radial-gradient(ellipse at 50% -20%,rgba(108,137,75,.18),transparent 55%),linear-gradient(135deg,#0d0e0d,#151713 55%,#0b0c0b);font:15px/1.55 Georgia,"Times New Roman",serif}
+    .shell{width:min(920px,calc(100% - 32px));margin:32px auto}header{text-align:center;padding:12px 12px 26px}.sigil{width:58px;height:58px;margin:0 auto 14px;display:grid;place-items:center;border:1px solid var(--gold);border-radius:50%;color:var(--bright);font-size:26px;box-shadow:0 0 30px rgba(145,182,107,.12)}
+    .eyebrow{color:var(--gold);letter-spacing:.28em;font:10px/1.4 Arial,sans-serif;text-transform:uppercase}h1{margin:8px 0 5px;color:var(--bright);font-size:clamp(28px,5vw,43px);letter-spacing:.09em;font-weight:500}.subtitle{color:var(--muted);font-style:italic}
+    .panel{border:1px solid var(--line);background:linear-gradient(145deg,rgba(29,32,27,.97),rgba(17,19,17,.98));box-shadow:0 22px 70px #0006;border-radius:5px;overflow:hidden}.topbar{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);background:#0003;font:11px/1.4 Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase}.status{color:var(--muted);display:flex;gap:9px;align-items:center}.dot{width:7px;height:7px;background:#777;border-radius:50%;display:inline-block}.dot.ready{background:var(--green);box-shadow:0 0 9px var(--green)}.model{color:var(--gold);text-align:right}
+    .intro{padding:19px 20px 16px;border-bottom:1px solid #b99a5529}.intro p{margin:0 0 12px;color:#c4c5b9}.model-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+    button{border:1px solid var(--gold);background:linear-gradient(#303629,#20251d);color:var(--bright);padding:10px 16px;border-radius:3px;cursor:pointer;font:12px Arial,sans-serif;letter-spacing:.11em;text-transform:uppercase}button:hover:not(:disabled){background:#3b4930}button:disabled{opacity:.5;cursor:not-allowed}.small-note{color:var(--muted);font:12px/1.5 Arial,sans-serif}
+    .progress-wrap{display:none;margin-top:14px}.progress-meta{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font:11px Arial,sans-serif;margin-bottom:7px}progress{appearance:none;width:100%;height:7px;border:0;border-radius:8px;overflow:hidden;background:#34382f}progress::-webkit-progress-bar{background:#34382f}progress::-webkit-progress-value{background:linear-gradient(90deg,#607c49,#b8d78b)}progress::-moz-progress-bar{background:var(--green)}
+    .chat{height:min(55vh,520px);min-height:330px;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:15px}.message{max-width:88%;padding:12px 15px;border-radius:3px;white-space:pre-wrap;overflow-wrap:anywhere}.who{display:block;margin-bottom:5px;font:10px Arial,sans-serif;letter-spacing:.16em;text-transform:uppercase}.doom{align-self:flex-start;border-left:2px solid var(--green);background:#748f531a}.doom .who{color:var(--bright)}.user{align-self:flex-end;border-right:2px solid var(--gold);background:#b99a551a}.user .who{color:var(--gold);text-align:right}
+    .composer{display:flex;gap:10px;padding:15px;border-top:1px solid var(--line);background:#0003}textarea{flex:1;min-height:46px;max-height:130px;resize:vertical;padding:12px;border:1px solid #b99a554d;border-radius:3px;color:var(--text);background:#111410;font:14px/1.4 Georgia,serif;outline:none}textarea:focus{border-color:var(--green)}.foot{display:flex;justify-content:space-between;gap:12px;padding:0 17px 15px;color:var(--muted);font:11px/1.5 Arial,sans-serif}.error{color:var(--danger)}a{color:var(--bright)}
+    @media(max-width:560px){.shell{width:calc(100% - 18px);margin:15px auto}.topbar{align-items:flex-start;flex-direction:column}.model{text-align:left}.message{max-width:96%}.composer{flex-direction:column}.composer button{align-self:flex-end}.foot{flex-direction:column}}
+  </style>
+</head>
+<body>
+<main class="shell">
+  <header><div class="sigil" aria-hidden="true">D</div><div class="eyebrow">Latverian sovereign intelligence system</div><h1>THE DOOM PROTOCOL</h1><div class="subtitle">A private audience with Victor von Doom</div></header>
+  <section class="panel" aria-label="Doctor Doom local chat">
+    <div class="topbar"><div class="status"><span id="statusDot" class="dot"></span><span id="statusText">System dormant · model not loaded</span></div><div class="model">SmolLM2 · 360M · 4-bit</div></div>
+    <div class="intro">
+      <p>“You have been granted an audience. Speak with purpose.”</p>
+      <div class="model-row"><button id="downloadBtn">Download model</button><span class="small-note">Model files: several hundred MB, depending on backend and browser</span></div>
+      <div class="progress-wrap" id="progressWrap"><div class="progress-meta"><span id="progressLabel">Preparing model…</span><span id="progressPct">0%</span></div><progress id="progressBar" max="100" value="0"></progress></div>
+      <p class="small-note" style="margin:12px 0 0">The model is downloaded once and cached by your browser. After that, replies are generated on your device; chat messages are not sent to an AI server. The first download requires an internet connection. Browser storage can be cleared, in which case the model may need to be downloaded again.</p>
+    </div>
+    <div class="chat" id="chat" aria-live="polite"><div class="message doom"><span class="who">Doctor Doom</span>You stand before Doom. The world is full of noise, lesser minds, and avoidable errors. State your purpose.</div></div>
+    <form class="composer" id="chatForm"><textarea id="userInput" rows="2" placeholder="Address the sovereign…" aria-label="Your message" disabled></textarea><button id="sendBtn" type="submit" disabled>Transmit</button></form>
+    <div class="foot"><span id="backendLabel">Inference: not initialized</span><span>Short memory · last 2 exchanges retained</span></div>
+  </section>
+  <p class="small-note" style="text-align:center;margin:15px 0">Requires a modern browser and a secure origin (HTTPS or localhost). WebGPU is preferred; WASM is the fallback.</p>
+</main>
+<script type="module">
+  import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1";
+  const MODEL_ID = "HuggingFaceTB/SmolLM2-360M-Instruct";
+  const $ = (id) => document.getElementById(id);
+  const downloadBtn=$("downloadBtn"),sendBtn=$("sendBtn"),input=$("userInput"),chat=$("chat");
+  const statusText=$("statusText"),statusDot=$("statusDot"),progressWrap=$("progressWrap");
+  const progressBar=$("progressBar"),progressLabel=$("progressLabel"),progressPct=$("progressPct"),backendLabel=$("backendLabel");
+  env.useBrowserCache=true; env.useWasmCache=true;
+  const systemPrompt="You are Doctor Victor von Doom, sovereign of Latveria: brilliant, imperious, disciplined, theatrical, proud, and supremely confident. Speak formally, with occasional dry disdain and grand declarations. Refer to yourself as Doom. Stay in character while answering the user's actual question helpfully. Do not claim real-world powers or authority. Keep replies concise, usually 2–5 sentences.";
+  let generator=null,backend=null,busy=false;
+  const history=[];
+  function setStatus(value,ready=false){statusText.textContent=value;statusDot.classList.toggle("ready",ready)}
+  function addMessage(role,value){const node=document.createElement("div");node.className="message "+(role==="user"?"user":"doom");const who=document.createElement("span");who.className="who";who.textContent=role==="user"?"You":"Doctor Doom";const body=document.createElement("span");body.textContent=value;node.append(who,body);chat.append(node);chat.scrollTop=chat.scrollHeight;return body}
+  function updateProgress(info){if(!info)return;if(info.status==="progress"&&Number.isFinite(info.progress)){const pct=Math.max(0,Math.min(100,Math.round(info.progress)));progressBar.value=pct;progressPct.textContent=pct+"%";progressLabel.textContent=info.file?"Downloading "+info.file:"Downloading model files…"}else if(info.status==="initiate"){progressLabel.textContent="Starting "+(info.file||"model file")+"…"}else if(info.status==="done"){progressLabel.textContent="File ready; initializing inference…"}}
+  async function loadModel(){
+    if(generator||busy)return;busy=true;downloadBtn.disabled=true;progressWrap.style.display="block";progressLabel.classList.remove("error");progressBar.value=0;progressPct.textContent="0%";setStatus("Preparing local model…");
+    const options={progress_callback:updateProgress};
+    try{
+      if(navigator.gpu){try{progressLabel.textContent="Trying WebGPU…";generator=await pipeline("text-generation",MODEL_ID,{...options,device:"webgpu",dtype:"q4f16"});backend="WebGPU"}catch(error){console.warn("WebGPU unavailable; falling back to WASM.",error);generator=null}}
+      if(!generator){progressLabel.textContent="Loading WASM fallback…";generator=await pipeline("text-generation",MODEL_ID,{...options,device:"wasm",dtype:"q4"});backend="WASM"}
+      progressBar.value=100;progressPct.textContent="100%";progressLabel.textContent="Model ready. Doom is awaiting.";backendLabel.textContent="Inference: "+backend+" · on-device";setStatus("Local inference online",true);downloadBtn.textContent="Model ready";input.disabled=false;sendBtn.disabled=false;input.focus();
+    }catch(error){console.error(error);setStatus("Model load failed");progressLabel.textContent="Could not load model: "+(error.message||error);progressLabel.classList.add("error");downloadBtn.disabled=false;downloadBtn.textContent="Retry download"}
+    finally{busy=false}
+  }
+  async function sendMessage(text){
+    if(!generator||busy||!text.trim())return;busy=true;sendBtn.disabled=true;input.disabled=true;addMessage("user",text);const thinking=addMessage("assistant","Doom considers your words…");
+    const messages=[{role:"system",content:systemPrompt},...history.slice(-4),{role:"user",content:text}];
+    try{
+      const result=await generator(messages,{max_new_tokens:112,do_sample:true,temperature:.78,top_p:.9,repetition_penalty:1.12});
+      const generated=result?.[0]?.generated_text;let answer="";
+      if(Array.isArray(generated))answer=generated[generated.length-1]?.content||"";else if(typeof generated==="string")answer=generated;
+      answer=answer.trim()||"Doom's patience is not infinite. Reformulate your query.";thinking.textContent=answer;
+      history.push({role:"user",content:text},{role:"assistant",content:answer});if(history.length>4)history.splice(0,history.length-4);
+    }catch(error){console.error(error);thinking.textContent="Inference error: "+(error.message||error);thinking.parentElement.classList.add("error")}
+    finally{busy=false;sendBtn.disabled=false;input.disabled=false;input.focus();chat.scrollTop=chat.scrollHeight}
+  }
+  downloadBtn.addEventListener("click",loadModel);
+  $("chatForm").addEventListener("submit",async(event)=>{event.preventDefault();const text=input.value.trim();if(!text||busy)return;input.value="";await sendMessage(text)});
+  input.addEventListener("keydown",(event)=>{if(event.key==="Enter"&&!event.shiftKey){event.preventDefault();$("chatForm").requestSubmit()}});
+</script>
+</body>
+</html>
