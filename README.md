@@ -17,6 +17,10 @@ This repository includes a GitHub Actions workflow at `.github/workflows/pages.y
 3. Open the **Actions** tab and confirm the **Deploy to GitHub Pages** workflow completes.
 4. Visit the live-site URL above. The first model load requires internet access.
 
+## Customize Doom's voice
+
+Edit [`character.js`](./character.js) on GitHub to change the character's voice, behavior, and response rules. The page imports this prompt when it loads.
+
 ## Browser behavior
 
 - The page itself is static; no server or API key is required.
